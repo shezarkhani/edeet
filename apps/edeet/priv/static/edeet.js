@@ -2,6 +2,7 @@ var server = 'ws://' + window.location.host + '/websocket';
 var ws = null;
 var current = '';
 var editor = null;
+var retry_count = 0;
 
 function send(obj) {
     if (ws.readyState == ws.OPEN) {
@@ -28,6 +29,8 @@ function connect() {
  }
 
 function websocket_init(event) {
+    retry_count = 0;
+
     send({
         message: '',
         type: 'init',
@@ -44,7 +47,7 @@ function handle_message(event) {
         if ($('#people #' + message.name).length !== 0) {
 
             $('#people #' + message.name)
-                .data('connection-id', message.id)
+                .attr('connection-id', message.id)
                 .fadeIn()
 
             return;
@@ -56,12 +59,12 @@ function handle_message(event) {
             .attr('id', message.name)
 
             .appendTo('#people')
-            .data('connection-id', message.id)
+            .attr('connection-id', message.id)
             .fadeIn();
     }
 
     if (message.lost) {
-        $('#people data[connection-id="' + message.lost + '"]').fadeOut()
+        $('.person[connection-id="' + message.lost + '"]').fadeOut()
     }
 
 
@@ -78,7 +81,16 @@ function handle_message(event) {
 }
 
 function terminate(event) {
-    connect();
+    if (retry_count > 10) {
+        console.log('Server is down. I give up.');
+        return;
+    }
+
+    var timeout = retry_count * 1000;
+    setTimeout(function() {
+        retry_count += 1;
+        connect();
+    }, timeout);
 }
 
 function setup_send_timer() {
@@ -95,30 +107,6 @@ function setup_send_timer() {
 
         setup_send_timer();
     }, 1000);
-}
-
-function getCaretCharacterOffsetWithin(element) {
-    var caretOffset = 0;
-    var doc = element.ownerDocument || element.document;
-    var win = doc.defaultView || doc.parentWindow;
-    var sel;
-    if (typeof win.getSelection != "undefined") {
-        sel = win.getSelection();
-        if (sel.rangeCount > 0) {
-            var range = win.getSelection().getRangeAt(0);
-            var preCaretRange = range.cloneRange();
-            preCaretRange.selectNodeContents(element);
-            preCaretRange.setEnd(range.endContainer, range.endOffset);
-            caretOffset = preCaretRange.toString().length;
-        }
-    } else if ( (sel = doc.selection) && sel.type != "Control") {
-        var textRange = sel.createRange();
-        var preCaretTextRange = doc.body.createTextRange();
-        preCaretTextRange.moveToElementText(element);
-        preCaretTextRange.setEndPoint("EndToEnd", textRange);
-        caretOffset = preCaretTextRange.text.length;
-    }
-    return caretOffset;
 }
 
 function open_document() {

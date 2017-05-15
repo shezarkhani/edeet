@@ -45,6 +45,15 @@ edit_document(DocId, Bin) ->
     ets:update_element(edeet_documents, DocId, {3, Bin}).
 
 -spec generate_doc_id(binary()) -> binary().
-generate_doc_id(DocName) ->
+generate_doc_id(RawDocName) ->
+    DocName = sanitize(RawDocName),
     Random = integer_to_binary(rand:uniform(9000)),
+
     <<DocName/binary, "_", Random/binary>>.
+
+-spec sanitize(binary()) -> binary().
+sanitize(RawDocName) ->
+    ReplaceSpaces = re:replace(RawDocName, <<"\s">>, <<"-">>, [global, {return, binary}]),
+    ReplaceHtml = re:replace(ReplaceSpaces, <<"<|>">>, <<"">>, [global, {return, binary}]),
+
+    ReplaceHtml.

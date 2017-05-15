@@ -124,6 +124,7 @@ body h1 {
     margin-right: 40px;
     margin-bottom: 20px;
     padding-top: 130px;
+    text-align: center;
 }
 
 #documents .document:hover {
