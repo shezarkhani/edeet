@@ -67,7 +67,6 @@ function handle_message(event) {
         $('.person[connection-id="' + message.lost + '"]').fadeOut()
     }
 
-
     if (message.init) {
         window.location.hash = message.doc_id;
     }

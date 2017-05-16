@@ -42,6 +42,9 @@ get_document(DocId) ->
     end.
 
 edit_document(DocId, Bin) ->
+    [{DocId, _, DocBin}] = ets:lookup(edeet_documents, DocId),
+    io:format("Diffing: ~p~n", [edeet_diff:diff(DocBin, Bin)]),
+
     ets:update_element(edeet_documents, DocId, {3, Bin}).
 
 -spec generate_doc_id(binary()) -> binary().
